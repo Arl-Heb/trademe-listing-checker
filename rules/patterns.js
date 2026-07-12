@@ -5,6 +5,14 @@ function toText(value) {
   return typeof value === 'string' ? value : '';
 }
 
+// same idea as toText but for numbers. Number('') is 0 in JS, which would make a
+// blank field look like a real zero, so blank/missing values need to bail out first.
+function toNumber(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+}
+
 // phrases sellers use to technically disclose a knockoff while still catching your eye
 // with branded-looking photos and titles. "generic" in the title is the classic version
 // of this, it's a single word that gets a seller off the hook for a misleading listing.
@@ -105,7 +113,47 @@ function checkVagueSourcing(listing) {
   };
 }
 
-const rules = [checkHedgeLanguage, checkVagueSourcing];
+// thresholds are rough judgement calls, not anything Trade Me publishes.
+// a $300 item is expensive enough that a buyer should expect a track record behind it,
+// and 60 days covers the window where an account could've been spun up just for one sale
+const HIGH_VALUE_THRESHOLD = 300;
+const LOW_REVIEW_COUNT = 10;
+const RECENT_ACCOUNT_DAYS = 60;
+
+function checkSellerFeedback(listing) {
+  const feedback = listing.sellerFeedback;
+  if (!feedback || typeof feedback !== 'object' || Array.isArray(feedback)) return null;
+
+  const price = toNumber(listing.price);
+  const reviewCount = toNumber(feedback.reviewCount);
+  const flags = [];
+
+  if (price !== null && price >= HIGH_VALUE_THRESHOLD && reviewCount !== null && reviewCount < LOW_REVIEW_COUNT) {
+    flags.push(`only ${reviewCount} review${reviewCount === 1 ? '' : 's'} on a $${price} item`);
+  }
+
+  const memberSinceRaw = feedback.memberSince;
+  if (typeof memberSinceRaw === 'string' || typeof memberSinceRaw === 'number') {
+    const joinedDate = new Date(memberSinceRaw);
+    if (!Number.isNaN(joinedDate.getTime())) {
+      const daysSinceJoining = (Date.now() - joinedDate.getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSinceJoining >= 0 && daysSinceJoining < RECENT_ACCOUNT_DAYS) {
+        const days = Math.floor(daysSinceJoining);
+        flags.push(`seller account is only ${days} day${days === 1 ? '' : 's'} old`);
+      }
+    }
+  }
+
+  if (flags.length === 0) return null;
+
+  return {
+    id: 'seller-feedback',
+    severity: flags.length > 1 ? 'high' : 'medium',
+    message: `seller feedback looks thin for this listing: ${flags.join('; ')}`,
+  };
+}
+
+const rules = [checkHedgeLanguage, checkVagueSourcing, checkSellerFeedback];
 
 function runChecks(listing) {
   return rules
