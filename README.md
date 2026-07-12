@@ -18,6 +18,12 @@ Trade Me doesn't do this kind of check itself, and most of these tells are patte
 
 Node.js and Express on the backend, a plain HTML/CSS/JS frontend, no framework. The Anthropic API key lives in `.env` and is never touched by the frontend.
 
+## Not intended for public deployment
+
+This is a portfolio project, not a live service. It defaults to binding to `127.0.0.1`, so running it locally never exposes it to anything outside your own machine, on purpose. `/api/check` can trigger a paid Anthropic API call, and an endpoint like that being reachable from the internet with no one watching it is how a demo project turns into a surprise bill.
+
+There's rate limiting on that endpoint as a second layer of defense, and the Haiku call only fires when the free pattern rules haven't already found something conclusive, but neither of those is a substitute for just not exposing it. If you genuinely want to run this somewhere reachable, you'd need to set `HOST` to something other than `127.0.0.1` and think through rate limits, spending caps on the Anthropic account, and probably some form of access control first.
+
 ## Running it locally
 
 ```
@@ -38,4 +44,4 @@ public/             frontend (index.html, style.css, script.js)
 
 ## Status
 
-Early stages. The server and frontend shell are up, the pattern rules are being built out one at a time, and the Haiku fallback isn't wired in yet.
+The pattern rules and the Haiku fallback are both wired in. The frontend is still a placeholder, the results screen hasn't been designed yet.
