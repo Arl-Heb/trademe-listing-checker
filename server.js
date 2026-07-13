@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
-const patterns = require('./rules/patterns');
+const { checkListing } = require('./services/checkListing');
 const haiku = require('./services/haiku');
 
 const app = express();
@@ -18,9 +18,22 @@ const host = process.env.HOST || '127.0.0.1';
 app.use(express.json({ limit: '20kb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// nothing fancy, just enough visibility to see what's hitting the server and how
+// long it took, which matters once a route is calling out to an external API
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    console.log(`${req.method} ${req.path} ${res.statusCode} ${Date.now() - start}ms`);
+  });
+  next();
+});
+
 // bounds how often any one IP can trigger a check, which matters because a check
 // can end up calling the paid Haiku API. generous enough for someone testing a
-// handful of listings, tight enough that a spam loop doesn't run up a bill
+// handful of listings, tight enough that a spam loop doesn't run up a bill.
+// this counter lives in memory, so it only works as intended while this runs as
+// a single process, if this ever ran as multiple instances behind a load balancer
+// each one would count separately and the effective limit would multiply
 const checkLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
   limit: 20,
@@ -33,33 +46,34 @@ app.post('/api/check', checkLimiter, async (req, res) => {
   const listing = req.body;
 
   // req.body can be anything a client sends, guard against arrays/null/non-objects
-  // before rules start reading properties off it
+  // before the rules start reading properties off it
   if (!listing || typeof listing !== 'object' || Array.isArray(listing)) {
     return res.status(400).json({ error: 'listing must be a JSON object' });
   }
 
-  const triggered = patterns.runChecks(listing);
-
-  // a high severity hit from the free rules is already a confident result, no need
-  // to spend a Haiku call on it. anything less than that is where the rules are
-  // guessing, and that's exactly the case Haiku is there for
-  const hasHighSeverity = triggered.some((result) => result.severity === 'high');
-  const haikuResult = hasHighSeverity ? null : await haiku.assessListing(listing);
-
-  res.json({
-    riskLevel: patterns.computeRiskLevel(triggered, haikuResult?.concernLevel),
-    triggered,
-    haiku: haikuResult,
-  });
+  const result = await checkListing(listing);
+  res.json(result);
 });
 
-// keep error details out of the response, log server-side and send a generic message
+// keep error details out of the response and log them server-side instead.
+// entity.too.large and entity.parse.failed come from express.json() rejecting a
+// bad request body, anything else reaching here is an actual bug, not the
+// client's fault, so it gets a 500 rather than being lumped in as a 400
 app.use((err, req, res, next) => {
   console.error(err);
-  const status = err.type === 'entity.too.large' ? 413 : 400;
-  res.status(status).json({ error: 'could not process request' });
+
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({ error: 'listing is too large' });
+  }
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'could not parse request body as JSON' });
+  }
+  res.status(500).json({ error: 'something went wrong processing that request' });
 });
 
 app.listen(port, host, () => {
   console.log(`Trade Me Listing Checker running on http://${host}:${port}`);
+  if (!haiku.isConfigured()) {
+    console.warn('ANTHROPIC_API_KEY is not set, the Haiku fallback will be skipped on every check');
+  }
 });
