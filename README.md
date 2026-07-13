@@ -67,3 +67,5 @@ Dark ocean blue background, warm coral as the one accent colour, kept deliberate
 ## Status
 
 End to end and working: form on the frontend, pattern rules and the Haiku fallback on the backend, a results screen styled as an actual report rather than an alert box. Next up is more pattern rules and general polish.
+<img width="515" height="899" alt="image" src="https://github.com/user-attachments/assets/5c0cb27f-b237-4be1-83cf-33227ec56c18" />
+
