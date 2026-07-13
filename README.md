@@ -49,6 +49,10 @@ test/patterns.test.js        unit tests for the pattern rules
 
 `services/checkListing.js` is deliberately the only place that knows how a risk level gets decided. The route handler in `server.js` just validates the request and calls it, so the same logic could be reused from a CLI or a test without dragging Express along with it.
 
+## Design
+
+Dark ocean blue background, warm coral as the one accent colour, kept deliberately separate from the red/amber/green used for risk levels so a button never reads as a verdict. Space Grotesk for headings and labels, Work Sans for body text, both loaded from Google Fonts.
+
 ## Status
 
-The pattern rules and the Haiku fallback are both wired in, with unit tests covering the rules. The frontend is still a placeholder, the results screen hasn't been designed yet.
+End to end and working: form on the frontend, pattern rules and the Haiku fallback on the backend, a results screen styled as an actual report rather than an alert box. Next up is more pattern rules and general polish.
