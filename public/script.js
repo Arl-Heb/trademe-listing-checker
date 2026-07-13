@@ -122,17 +122,17 @@ function renderResults(result) {
     result.triggered.forEach((finding) => results.appendChild(renderFinding(finding)));
   }
 
-  if (result.haiku) {
-    const haikuTitle = document.createElement('p');
-    haikuTitle.className = 'results__section-title';
-    haikuTitle.textContent = "Claude's read";
-    results.appendChild(haikuTitle);
+  if (result.secondOpinion) {
+    const opinionTitle = document.createElement('p');
+    opinionTitle.className = 'results__section-title';
+    opinionTitle.textContent = 'Second opinion';
+    results.appendChild(opinionTitle);
 
     const note = document.createElement('div');
-    note.className = 'haiku-note';
+    note.className = 'second-opinion';
     note.innerHTML = `
-      <p class="haiku-note__level">${result.haiku.concernLevel} concern</p>
-      <p class="haiku-note__notes">${result.haiku.notes}</p>
+      <p class="second-opinion__level">${result.secondOpinion.concernLevel} concern</p>
+      <p class="second-opinion__notes">${result.secondOpinion.notes}</p>
     `;
     results.appendChild(note);
   }

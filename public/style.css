@@ -339,14 +339,14 @@ textarea:focus {
   margin: 0;
 }
 
-.haiku-note {
+.second-opinion {
   background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 18px 20px;
 }
 
-.haiku-note__level {
+.second-opinion__level {
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 0.85rem;
@@ -355,7 +355,7 @@ textarea:focus {
   margin: 0 0 8px;
 }
 
-.haiku-note__notes {
+.second-opinion__notes {
   margin: 0;
   color: var(--text);
 }

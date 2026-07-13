@@ -116,7 +116,7 @@ test('a non-object body does not crash any rule', () => {
   });
 });
 
-test('computeRiskLevel takes the highest severity across rules and haiku', () => {
+test('computeRiskLevel takes the highest severity across rules and the second opinion', () => {
   assert.equal(patterns.computeRiskLevel([], undefined), 'low');
   assert.equal(patterns.computeRiskLevel([{ severity: 'medium' }], undefined), 'medium');
   assert.equal(patterns.computeRiskLevel([{ severity: 'medium' }], 'high'), 'high');
