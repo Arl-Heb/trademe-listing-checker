@@ -12,6 +12,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.111.0",
+    "compression": "^1.8.1",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
