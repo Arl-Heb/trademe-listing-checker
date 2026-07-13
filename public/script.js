@@ -6,6 +6,7 @@ const results = document.getElementById('results');
 const importUrlInput = document.getElementById('import-url');
 const importButton = document.getElementById('import-button');
 const importError = document.getElementById('import-error');
+const importNote = document.getElementById('import-note');
 
 // rule ids come back as kebab-case ("hedge-language"), turn that into something
 // readable without needing to keep a separate label for every rule id
@@ -141,6 +142,7 @@ function renderResults(result) {
 
 importButton.addEventListener('click', async () => {
   clearImportError();
+  importNote.hidden = true;
   const url = importUrlInput.value.trim();
 
   if (!url) {
@@ -165,6 +167,7 @@ importButton.addEventListener('click', async () => {
     }
 
     populateFormFromImport(body);
+    importNote.hidden = false;
   } catch (err) {
     showImportError('Could not reach the server. Check your connection and try again.');
   } finally {

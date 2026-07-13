@@ -207,6 +207,12 @@ textarea:focus {
   font-size: 0.9rem;
 }
 
+.import-note {
+  margin: 16px 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
 .import-card {
   margin-bottom: 8px;
 }
