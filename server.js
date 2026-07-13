@@ -3,6 +3,7 @@ const express = require('express');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const { checkListing } = require('./services/checkListing');
+const { importListing } = require('./services/tradeMeImport');
 const haiku = require('./services/haiku');
 
 const app = express();
@@ -52,6 +53,32 @@ app.post('/api/check', checkLimiter, async (req, res) => {
   }
 
   const result = await checkListing(listing);
+  res.json(result);
+});
+
+// each import launches a real headless browser, which is far more expensive than
+// a normal request, so this gets a much tighter limit than /api/check
+const importLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'too many imports from this address, try again later' },
+});
+
+app.post('/api/import', importLimiter, async (req, res) => {
+  const url = req.body?.url;
+
+  if (typeof url !== 'string' || !url) {
+    return res.status(400).json({ error: 'a listing url is required' });
+  }
+
+  const result = await importListing(url);
+
+  if (result.error) {
+    return res.status(422).json({ error: result.error });
+  }
+
   res.json(result);
 });
 
