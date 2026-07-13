@@ -1,3 +1,10 @@
+
+<img width="515" height="899" alt="image" src="https://github.com/user-attachments/assets/5c0cb27f-b237-4be1-83cf-33227ec56c18" />
+
+
+
+
+
 # Trade Me Listing Checker
 
 A small tool for NZ buyers to sanity-check a Trade Me listing before they bid or buy. Paste in the title, description, price, category, and (optionally) the seller's feedback stats, and it flags patterns commonly associated with counterfeit goods or scam listings.
@@ -69,5 +76,5 @@ Dark ocean blue background, warm coral as the one accent colour, kept deliberate
 End to end and working: form on the frontend, pattern rules and the Haiku fallback on the backend, a results screen styled as an actual report rather than an alert box. Next up is more pattern rules and general polish.
 
 
-<img width="515" height="899" alt="image" src="https://github.com/user-attachments/assets/5c0cb27f-b237-4be1-83cf-33227ec56c18" />
+
 
