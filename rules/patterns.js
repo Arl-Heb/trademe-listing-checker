@@ -243,13 +243,14 @@ function runChecks(listing) {
     .filter((result) => result !== null);
 }
 
-// folds the pattern rule severities and, if it ran, Haiku's concern_level into one
-// overall level. Haiku's "low"/"none" don't push the level up on their own, they're
-// only there to add detail when the rules already have something or found nothing at all
-function computeRiskLevel(triggered, haikuConcernLevel) {
+// folds the pattern rule severities and, if it ran, the second opinion's concern
+// level into one overall level. a "low"/"none" concern doesn't push the level up
+// on its own, it's only there to add detail when the rules already have something
+// or found nothing at all
+function computeRiskLevel(triggered, secondOpinionConcernLevel) {
   const severities = triggered.map((result) => result.severity);
-  if (haikuConcernLevel === 'high') severities.push('high');
-  if (haikuConcernLevel === 'medium') severities.push('medium');
+  if (secondOpinionConcernLevel === 'high') severities.push('high');
+  if (secondOpinionConcernLevel === 'medium') severities.push('medium');
 
   if (severities.includes('high')) return 'high';
   if (severities.includes('medium')) return 'medium';

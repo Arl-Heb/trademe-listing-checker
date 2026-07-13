@@ -1,10 +1,11 @@
 require('dotenv').config();
 const express = require('express');
 const rateLimit = require('express-rate-limit');
+const compression = require('compression');
 const path = require('path');
 const { checkListing } = require('./services/checkListing');
 const { importListing } = require('./services/tradeMeImport');
-const haiku = require('./services/haiku');
+const secondOpinion = require('./services/secondOpinion');
 
 // a genuinely unexpected error (not an Express route rejection, something
 // truly uncaught, a timer callback, an event handler) would otherwise crash
@@ -25,10 +26,18 @@ const port = process.env.PORT || 3000;
 // from ever being reachable by anyone but you without a conscious decision to change it
 const host = process.env.HOST || '127.0.0.1';
 
+// gzip the HTML/CSS/JS and JSON responses, cheap to add and shrinks what actually
+// goes over the wire, mostly noticeable on a slow connection
+app.use(compression());
+
 // a listing is never going to be more than a few KB of text, so cap the body well
 // below that to make large-payload requests cheap to reject
 app.use(express.json({ limit: '20kb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+
+// an hour of caching means a repeat visit doesn't even need the conditional GET
+// round trip for the CSS/JS, cheap since none of this changes between deploys
+// of the same running process
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));
 
 // nothing fancy, just enough visibility to see what's hitting the server and how
 // long it took, which matters once a route is calling out to an external API
@@ -41,7 +50,7 @@ app.use((req, res, next) => {
 });
 
 // bounds how often any one IP can trigger a check, which matters because a check
-// can end up calling the paid Haiku API. generous enough for someone testing a
+// can end up calling a paid AI API. generous enough for someone testing a
 // handful of listings, tight enough that a spam loop doesn't run up a bill.
 // this counter lives in memory, so it only works as intended while this runs as
 // a single process, if this ever ran as multiple instances behind a load balancer
@@ -111,7 +120,7 @@ app.use((err, req, res, next) => {
 
 app.listen(port, host, () => {
   console.log(`Trade Me Listing Checker running on http://${host}:${port}`);
-  if (!haiku.isConfigured()) {
-    console.warn('ANTHROPIC_API_KEY is not set, the Haiku fallback will be skipped on every check');
+  if (!secondOpinion.isConfigured()) {
+    console.warn('AI_API_KEY is not set, the second opinion fallback will be skipped on every check');
   }
 });
